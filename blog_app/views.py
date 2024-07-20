@@ -20,8 +20,8 @@ class CategoryListCreateView(generics.ListCreateAPIView):
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
-        serializer = CategorySerializer(queryset, many=True, context={'request': request})
-        if queryset.extra():
+        if queryset.exists():
+            serializer = CategorySerializer(queryset, many=True, context={'request': request})
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response({"Message": 'No Category found'}, status=status.HTTP_404_NOT_FOUND)
@@ -30,16 +30,13 @@ class CategoryListCreateView(generics.ListCreateAPIView):
 class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    liikup_field = 'id'
+    lookup_field = 'id'
     permission_classes = [IsAdminOrReadOnly]
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
-        if instance:
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        else:
-            return Response({"Message": 'No blog found'}, status=status.HTTP_404_NOT_FOUND)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class BlogListCreateView(generics.ListCreateAPIView):
@@ -54,7 +51,7 @@ class BlogListCreateView(generics.ListCreateAPIView):
     def create(self, request, *args, **kwargs):
         serializer = BlogSerializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
-        serializer.save(authoe=self.request.user)
+        serializer.save(author=self.request.user)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
@@ -62,16 +59,13 @@ class BlogListCreateView(generics.ListCreateAPIView):
 class BlogDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Blog.objects.filter(is_public=True)
     serializer_class = BlogSerializer
-    liikup_field = 'id'
+    lookup_field = 'id'
     permission_classes = [IsOwnerOrReadOnly]
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
-        if instance:
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        else:
-            return Response({"Message": 'No blog found'}, status=status.HTTP_404_NOT_FOUND)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class BlogCommentListCreateView(generics.ListCreateAPIView):
